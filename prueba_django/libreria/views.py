@@ -1,6 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import punto
+from .form import punto_form
 # Create your views here.
 
 # def inicio(request):
@@ -18,10 +19,21 @@ def puntos(request):
 def nosotros(request):
     return render(request, "puntos/nosotros.html")
 def crear(request):
-    return render(request, "puntos/crear.html")
+    formulario= punto_form(request.POST or None, request.FILES or None)
+    if formulario.is_valid():
+        formulario.save()
+        return redirect(puntos)
+    return render(request, "puntos/crear.html", {'formulario': formulario})
 def form(request):
     return render(request, "puntos/form.html")
-def editar(request):
-    return render(request, "puntos/editar.html")
-def borrar(request):
-    return render(request, "puntos/borrar.html")
+def editar(request, id):
+    puntos=punto.objects.get(id=id)
+    formulario= punto_form(request.POST or None, request.FILES or None, instance=puntos)
+    if formulario.is_valid() and request.POST:
+        formulario.save()
+        return redirect('puntos')
+    return render(request, "puntos/editar.html", {'formulario': formulario})
+def borrar(request, id):
+    puntos=punto.objects.get(id=id)
+    puntos.delete()
+    return redirect("puntos")
